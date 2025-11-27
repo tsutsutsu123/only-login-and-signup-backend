@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tsutsutsu123/only-login-and-signup/models"
 )
 
 type RegisterInput struct {
@@ -12,13 +13,22 @@ type RegisterInput struct {
 }
 
 func Register(c *gin.Context) {
-	var input RegisterInput
+    var input RegisterInput
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H {
-		"data": "validated!",
-	})
+    if err := c.ShouldBindJSON(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    user := models.User{Username: input.Username, Password: input.Password}
+
+    user, err := user.Save()
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "data": user.PrepareOutput(),
+    })
 }
